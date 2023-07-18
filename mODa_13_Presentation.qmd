@@ -1,0 +1,255 @@
+---
+title: "A model robust subsampling approach for Generalised Linear Models in big data settings"
+author: "Amalan Mahendran, Helen Thompson, James McGree"
+institute: "School of Mathematical Sciences, Queensland University of Technology"
+format: 
+  revealjs:
+    slide-number: c
+    slide-level: 2
+    width: 1600
+    height: 900
+    logo: images/qut_logo.png
+    footer: "A model robust subsampling approach for Generalised Linear Models in big data settings"
+    theme: simple
+    css: theme.css
+title-slide-attributes: 
+  data-background-color: "#67b7fd"
+bibliography: references.bib
+include-in-header:
+  - text: |
+      <style>
+      #title-slide .title {
+        font-size: 2.5em;
+        color: #043464;
+      }
+      </style>
+---
+
+# Introduction
+
+-   **Subsampling** - subset of the big data is analysed and used as the basis for inference.
+
+-   **A key question** is how to select an informative subset based on the questions being asked of the data.
+
+-   **Recent approaches for regression modelling** are of obtaining a subsample based on subsampling probabilities that are determined for each data point.
+
+-   **A limitation** is that the appropriate subsampling probabilities rely on an assumed model for the big data.
+
+-   **To overcome this we propose a model robust approach where a set of models are considered, and the subsampling probabilities are evaluated based on the weighted average of probabilities.**
+
+# Literature review
+
+-   Current subsampling approaches that rely on a statistical model that is assumed to appropriately describe the big data and estimate the model parameters:
+    1.  softmax regression [@yao2019softmax]
+    2.  quantile regression [@ai2020quantile]
+    3.  Generalised Linear Models(GLMs) [@wang2018logistic; @ai2021optimal]
+-   Potential available solutions:
+    1.  For **linear regression** - select the best candidate model from a pool of models based on the Bayesian Information Criterion.
+    2.  For **GLMs** - using space-filling or orthogonal Latin hypercube designs so that a wide range of models could be considered [@shi2021model; @meng2021lowcon; @yi2023model].
+
+# General subsampling algorithm for GLM
+
+![](images\General_Subsampling_Algorithm.png){width="800" fig-align="center"}
+
+-   In the Algorithm 1 a subsample $S$ is obtained using the subsampling probabilities $\phi$ that is determined based on a research problem. (For example prediction and/or parameter estimation).
+
+# Optimal subsampling approach for GLM [@ai2021optimal] {style="font-size: 60%;"}
+
+::: columns
+::: {.column width="50%"}
+![](images\Current_Approach.png){width="725" height="700" fig-align="center"}
+:::
+
+::: {.column width="50%" style="font-size:125%"}
+-   $\phi=\phi^{mMSE}$ is obtained for A-optimality criterion (minimising the asymptotic mean squared error $\tilde{\theta}$). (Theorem 3)
+
+-   $\phi^{mMSE}$ cannot be determined directly as they depend on $\hat{\theta}_{MLE}$, the full data estimated model parameter.
+
+-   To address this a two-stage subsample strategy was proposed,
+
+    -   Stage 1- An initial random sample of the big data is used to estimate $\hat{\theta}_{MLE}$.
+    -   Stage 2- This estimate is then used to approximate $\phi^{mMSE}$ and obtain an optimal subsample.
+:::
+:::
+
+# Some major limitations and solutions of the optimal subsampling approach
+
+1.  **Computational expense in obtaining** $\phi^{mMSE}$ - for GLMs using the Johnson-Lindenstrauss Transform (JLT) and subsampled Randomised Hadamard Transform (SRHT) downsize matrix volume [@lee2021fast].
+
+2.  **Approximation for the optimal subsampling probabilities can lead to some data points having zero probability of being selected** - resolve this by setting these subsampling probabilities to a small value to ensure such data points have some (non-zero) probability of being selected [@ai2021optimal].
+
+3.  **Subsampling probabilities are evaluated based on an assumed model and they are generally only optimal for this model** - We propose the development of methods that yield subsampling probabilities that are robust to the choice of model.
+
+# Model robust subsampling for GLM
+
+::: columns
+::: {.column width="50%"}
+![](images\Proposed_Approach.png){width="750" height="725"}
+:::
+
+::: {.column width="50%"}
+-   A set of $Q$ models which can encapsulate a variety of scenarios observed within the data.
+
+-   For each model in this set, define our *a priori* model probabilities $\alpha_q$ for $q=1,\ldots,Q$. For the $q^{th}$ model $X_q=h_q(X_0)$.
+
+-   We form $\phi$, that addresses the analysis aim regardless of which model is actually preferred for the big data, via a weighted average (based on $\alpha_q$) of the subsampling probabilities that would be obtained for each model (singularly).
+:::
+:::
+
+# Two stage algorithm for the model robust subsampling method {style="font-size:67.5%"}
+
+::: columns
+::: {.column width="50%"}
+![](images\Model_Robust_Subsampling_Approach.png){width="750" height="675"}
+:::
+
+::: {.column width="50%" style="font-size:125%"}
+-   Our proposed model robust subsampling approach is assessed via simulation and in real-world scenarios under poisson and logistic regression.
+
+-   In the simulation study and real-world scenario for poisson regression we compare our proposed model robust subsampling algorithm with the optimal subsampling approach of @ai2021optimal and random sampling.
+
+-   We used the R statistical programming language to code the simulation study and the real-world application.
+:::
+:::
+
+# Simulation study
+
+::: columns
+::: {.column width="50%" style="font-size:21px"}
+::: center
+Table 1: Model set assumed fo the simulation study
+
+| Model set                                                          |
+|--------------------------------------------------------------------|
+| $\theta_1+\theta_2x_1+\theta_3x_2$                                 |
+| $\theta_1+\theta_2x_1+\theta_3x_2 + \theta_4x^2_1$                 |
+| $\theta_1+\theta_2x_1+\theta_3x_2 + \theta_4x^2_2$                 |
+| $\theta_1+\theta_2x_1+\theta_3x_2 + \theta_4x^2_1 + \theta_5x^2_2$ |
+:::
+
+![](images\Simulation_Study.png){width="775" height="525"}
+:::
+
+::: {.column width="50%"}
+-   For poisson regression we generate the covariate data $X$ from the uniform distribution.
+
+-   Set $N =10000, Q=4, \alpha_q=\frac{1}{4}$,$r_0=100, r=100,200,\ldots,1400$ and $M=1000$.
+
+-   For a selected data model under the six scenarios evaluate the SMSE to compare $\theta$ with $\tilde{\theta}$.
+
+-   R code for the simulation study -\
+    ![](images\Simulation_study_QR.png){width="175" height="175"}
+:::
+:::
+
+# Results
+
+::: columns
+::: {.column width="50%"}
+-   In Figure 1, SMSE values for various $r$ sizes show that:
+    -   On average, random sampling performs worst.
+    -   The proposed model robust approach and the optimal subsampling method based on the data generating model perform the best.
+    -   Model robust approach is preferable overall even though the complex model performs well in some instances.
+:::
+
+::: {.column width="50%" style="font-size:29.5px"}
+![Figure 1: Logarithm of SMSE for the subsampling methods for the poisson regression model $\phi^{mMSE}$. Covariate data were generated from the uniform distribution.](images\Results_1.png){width="725" height="725"}
+:::
+:::
+
+# Real-world scenario
+
+-   In the simulation study, the parameters were specified for the data generating model.
+
+-   However, in real-world applications these are unknown.
+
+-   Therefore to compare the subsampling methods, for the $Q$ model set, the Summed SMSE (SSMSE) under each subsampling methods can be evaluated as follows: $$SSMSE(\hat{\theta}_{MLE})= \frac{1}{M} \sum_{i=1}^{Q} \alpha_q \sum_{m=1}^{M}\sum_{n=1}^{p+t} ({\tilde{\theta}_{q}}_{nm} - {\hat{\theta}_{q,MLE}}_n),$$ where $\tilde{\theta}_q$ is a matrix with the estimated parameters for the $q^{th}$ model over $M$ simulations and $\hat{\theta}_{q,MLE}$ denotes $\hat{\theta}_{MLE}$ for the $q^{th}$ model.
+
+-   The set of $Q$ models includes the main effects model, with intercept, and all possible combinations of quadratic terms for continuous covariates with $\alpha_q$ set to $1/Q$.
+
+# "New-York City taxi fare" data {style="font-size: 72.5%;"}
+
+::: columns
+::: {.column width="50%"}
+-   New York City (NYC) taxi trip and fare information of year 2013 consisting of over 170 million records. [@illinoisdatabankIDB]
+
+-   We are interested in how taxi usage varies with day of the week (weekday/weekend), season (winter/spring/summer/ autumn), fare amount, and cash payment.
+
+-   Each data point includes
+
+    1.  $y$- poisson response variable - the number of rides recorded against the medallion number (a license number provided for a motor vehicle to operate as a taxi),
+    2.  $x_1$- weekday or not,
+    3.  $x_2$- winter or not,
+    4.  $x_3$- spring or not,
+    5.  $x_4$- summer or not,
+    6.  $x_5$- summed fare amount in dollars, and
+    7.  $x_6$- the ratio of cash payment trips in terms of all trips.
+
+-   Poisson regression was used to model the relationship between the number of rides per medallion and these covariates.
+:::
+
+::: {.column width="50%"}
+-   Optimal and model robust subsampling probabilities based on A- and L- optimality criterion, that is $\phi^{mMSE}$ and $\phi^{mV_c}$ are evaluated, respectively.
+
+-   Assign $M=1000$, $r_0=100$, $r=100,200,\ldots,1900$ for the subsamples.
+
+-   The model set leads to $Q=4$, consisting of
+
+    1.  the main effects model ($x_1,x_2,x_3,x_4,x_5,x_6$)
+    2.  the main effects model $+$ $x^2_5$
+    3.  the main effects model $+$ $x^2_6$
+    4.  the main effects model $+$ $x^2_5$ $+$ $x^2_6$
+
+-   Each of these models were considered equally likely a priori leading to $\alpha_q=1/4$.
+
+-   R-code for the New-York City taxi fare data -\
+    ![](images\NYC_Taxi_Fare_Data_QR.png){width="175" height="175"}
+:::
+:::
+
+# Results
+
+::: columns
+::: {.column width="50%" style="font-size:29.5px"}
+![Fig 2: Logarithm of SSMSE over the available models for Poisson regression applied on the 2013 NYC taxi usage data.](images\Results_2.png){width="825" height="725"}
+:::
+
+::: {.column width="50%"}
+-   In Figure 2, SSMSE over the four models is shown, where .
+
+    -   Random sampling performs the worst.
+
+    -   Our proposed model robust approach outperforms the optimal subsampling method for almost all sample sizes for both $\phi^{mMSE}$ and $\phi^{mVc}$.
+
+    -   Under $\phi^{mV_c}$, the model robust approach actually initially performs worse than the optimal subsampling approach but this is quickly reserved as $r$ is increased.
+:::
+:::
+
+# Discussion
+
+-   We proposed a model robust subsampling approach for GLMs.
+
+-   This new approach extends the current optimal subsampling approach by considering a set of models (rather than a single model) when determining the subsampling probabilities.
+
+-   The robustness properties of this proposed approach were demonstrated in a simulation study, and real-world analysis problem, where it outperformed optimal subsampling and random sampling.
+
+# Future research
+
+-   Main limitation of our proposed approach is that the specified model set could become quite large as the number of covariates increases.
+
+-   One approach to address this issue is by extending the specification of the model set to a flexible class of models.
+
+-   Another avenue of interest that could also be explored is determining $\alpha_q$ and/or reducing the model set based on the initial subsample, that is models that clearly do not support the data could be dropped.
+
+# References {style="font-size: 72.5%;"}
+
+::: {#refs}
+:::
+
+# THANK YOU
+
+::: {style="text-align: center;"}
+Link to the paper.
+
+![](images\Paper_QR.png)
+:::
